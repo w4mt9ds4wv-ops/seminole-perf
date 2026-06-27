@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PA-44-180 Seminole Performance</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Seminole">
+<meta name="theme-color" content="#0a0e13">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-theme="panel">
+<div id="f-view">
+  <header id="f-head">
+    <span class="f-dot" id="f-offline" title="connection"></span>
+    <span class="f-title">PA-44-180 Seminole</span>
+    <span class="f-sub">performance · reference only</span>
+  </header>
+  <nav id="f-nav"></nav>
+  <main id="f-main"></main>
+  <footer id="f-foot">Reference / planning aid only — verify against the official POH. Distance &amp; climb figures are digitized from charts.</footer>
+</div>
+
+<!-- scripts in dependency order: framework -> model -> pages -> boot -->
+<script src="src/framework/framework.js"></script>
+<script src="src/model/pa44.js"></script>
+<script src="src/page/pages.js"></script>
+<script src="src/boot.js"></script>
+<script>
+  // Service worker only on http/https (not file://). Offline still works from cache.
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("service-worker.js").catch(function () {}); });
+  }
+  function setDot() { var d = document.getElementById("f-offline"); if (d) d.classList.toggle("off", !navigator.onLine); }
+  window.addEventListener("online", setDot); window.addEventListener("offline", setDot); setDot();
+</script>
+</body>
+</html>
