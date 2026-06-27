@@ -1,5 +1,5 @@
 /* Offline-first precache. Same-origin only; zero cross-origin requests. */
-var CACHE = "pa44fw-v3";
+var CACHE = "pa44fw-v4";
 var ASSETS = [
   "index.html",
   "offline.html",

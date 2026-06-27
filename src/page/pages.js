@@ -34,58 +34,65 @@
   pp.va = function (w) { var s = ac.data("speeds"); return Math.round(U.interp(Math.max(2700, Math.min(3800, w)), 2700, s.Va2700, 3800, s.Va3800)); };
 
   // dynamic runway + wind graphic (reflects runway heading, wind dir & speed)
+  // Geometry is bounded: the arrow tail sits on a compass ring (radius R) and the
+  // wind read-out is pinned to the top of the viewBox, so nothing clips at any
+  // wind direction. Margins around the ring keep the tail + source dot inside.
   pp.runwaySVG = function (hdg, wdir, wkt) {
-    var W = 150, H = 184, cx = 75, cy = 88;
+    var W = 152, H = 176, cx = 76, cy = 96, R = 58, rin = 22;
     hdg = ((hdg % 360) + 360) % 360;
-    var num = Math.round(hdg / 10); if (num === 0) num = 36; num = (num < 10 ? "0" : "") + num;
-    var s = "<rect x='" + (cx - 17) + "' y='" + (cy - 64) + "' width='34' height='128' rx='3' fill='#565b62'/>";
-    s += "<line x1='" + cx + "' y1='" + (cy - 56) + "' x2='" + cx + "' y2='" + (cy + 56) + "' stroke='#eef2f6' stroke-width='2' stroke-dasharray='9 8'/>";
-    s += "<text x='" + cx + "' y='" + (cy + 60) + "' text-anchor='middle' fill='#fff' font-size='13' font-weight='700'>" + num + "</text>";
+    var num = Math.round(hdg / 10); if (num === 0) num = 36;
+    var lo = (num < 10 ? "0" : "") + num;
+    var opp = ((num + 18 - 1) % 36) + 1, hi = (opp < 10 ? "0" : "") + opp;
+    var mono = "ui-monospace,SFMono-Regular,Menlo,monospace";
+    var s = "<circle cx='" + cx + "' cy='" + cy + "' r='" + R + "' fill='none' stroke='var(--svg-line,#dde2e9)' stroke-width='1.5'/>";
+    // runway slab + dashed centerline + threshold numbers (near end = selected runway)
+    s += "<rect x='" + (cx - 15) + "' y='" + (cy - 54) + "' width='30' height='108' rx='4' fill='var(--rwy-slab,#3b4149)'/>";
+    s += "<line x1='" + cx + "' y1='" + (cy - 44) + "' x2='" + cx + "' y2='" + (cy + 44) + "' stroke='#f1f4f8' stroke-width='2' stroke-dasharray='7 7' stroke-linecap='round'/>";
+    s += "<text x='" + cx + "' y='" + (cy + 50) + "' text-anchor='middle' fill='#fff' font-size='10' font-weight='700' font-family='" + mono + "'>" + lo + "</text>";
+    s += "<text x='" + cx + "' y='" + (cy - 44) + "' text-anchor='middle' fill='#fff' font-size='10' font-weight='700' font-family='" + mono + "'>" + hi + "</text>";
     if (IO.isValid(wdir, wkt) && wkt > 0) {
-      var delta = ((wdir - hdg) % 360 + 360) % 360, r = delta * Math.PI / 180, R = 68, r2 = 26;
-      var tx = cx + R * Math.sin(r), ty = cy - R * Math.cos(r);
-      var hx = cx + r2 * Math.sin(r), hy = cy - r2 * Math.cos(r);
-      var head = wkt * Math.cos(r), col = head >= -0.05 ? "#3fd896" : "#ff6a6a";
-      s += "<line x1='" + tx.toFixed(1) + "' y1='" + ty.toFixed(1) + "' x2='" + hx.toFixed(1) + "' y2='" + hy.toFixed(1) + "' stroke='" + col + "' stroke-width='3'/>";
-      function bp(off) { var a = r + off; return (hx + 12 * Math.sin(a)).toFixed(1) + "," + (hy - 12 * Math.cos(a)).toFixed(1); }
-      s += "<polygon points='" + hx.toFixed(1) + "," + hy.toFixed(1) + " " + bp(0.4) + " " + bp(-0.4) + "' fill='" + col + "'/>";
-      s += "<text x='" + tx.toFixed(1) + "' y='" + (ty < cy ? ty - 6 : ty + 12).toFixed(1) + "' text-anchor='middle' font-size='10' fill='" + col + "'>" + (wdir < 100 ? (wdir < 10 ? "00" : "0") : "") + wdir + "°/" + wkt + "</text>";
-    } else { s += "<text x='" + cx + "' y='14' text-anchor='middle' font-size='10' fill='#7f8b99'>calm</text>"; }
-    return "<svg viewBox='0 0 " + W + " " + H + "' class='f-rwy' role='img' aria-label='runway " + num + " with wind'>" + s + "</svg>";
+      var delta = ((wdir - hdg) % 360 + 360) % 360, r = delta * Math.PI / 180;
+      var tx = cx + R * Math.sin(r), ty = cy - R * Math.cos(r);   // tail on ring (wind source)
+      var hx = cx + rin * Math.sin(r), hy = cy - rin * Math.cos(r); // head toward centre
+      var head = wkt * Math.cos(r), col = head >= -0.05 ? "#1f9d57" : "#d6453a";
+      s += "<circle cx='" + tx.toFixed(1) + "' cy='" + ty.toFixed(1) + "' r='3' fill='" + col + "'/>";
+      s += "<line x1='" + tx.toFixed(1) + "' y1='" + ty.toFixed(1) + "' x2='" + hx.toFixed(1) + "' y2='" + hy.toFixed(1) + "' stroke='" + col + "' stroke-width='3.5' stroke-linecap='round'/>";
+      // arrowhead: tip at (hx,hy), wings stepped back along the shaft
+      var al = 12, aw = 7, bcx = hx + al * Math.sin(r), bcy = hy - al * Math.cos(r);
+      s += "<polygon points='" + hx.toFixed(1) + "," + hy.toFixed(1) + " " +
+        (bcx + aw * Math.cos(r)).toFixed(1) + "," + (bcy + aw * Math.sin(r)).toFixed(1) + " " +
+        (bcx - aw * Math.cos(r)).toFixed(1) + "," + (bcy - aw * Math.sin(r)).toFixed(1) + "' fill='" + col + "'/>";
+      var wd = (wdir < 100 ? (wdir < 10 ? "00" : "0") : "") + wdir;
+      s += "<text x='" + cx + "' y='15' text-anchor='middle' font-size='11' font-weight='700' fill='" + col + "' font-family='" + mono + "'>" + wd + "° @ " + wkt + " kt</text>";
+    } else { s += "<text x='" + cx + "' y='15' text-anchor='middle' font-size='11' font-weight='600' fill='var(--svg-dim,#9aa0a8)' font-family='" + mono + "'>CALM</text>"; }
+    return "<svg viewBox='0 0 " + W + " " + H + "' class='f-rwy' role='img' aria-label='runway " + lo + " with wind'>" + s + "</svg>";
   };
 
   function condState(p, withWind) {
     var s = {};
-    s[p + ".airport"] = { io: "input", type: "text", dflt: "", desc: "Airport (optional, no lookup)" };
     s[p + ".elev.ft"] = { io: "input", type: "number", min: -1500, max: 14000, dflt: 0, desc: "Field elevation" };
     s[p + ".oat.dC"] = { io: "input", type: "number", min: -40, max: 50, dflt: 15, desc: "OAT" };
     s[p + ".altimeter.inhg"] = { io: "input", type: "number", min: 28, max: 31, dflt: 29.92, desc: "Altimeter" };
     s[p + ".weight.lbs"] = { io: "input", type: "number", min: 2400, max: 3800, dflt: 3800, desc: "Weight" };
     s[p + ".runway"] = { io: "input", type: "option", dflt: "01", options: rwyOptions() };
     s[p + ".rwyLen.ft"] = { io: "input", type: "number", min: 0, max: 17000, dflt: 0, desc: "Runway length" };
-    s[p + ".slope"] = { io: "input", type: "number", min: -5, max: 5, dflt: 0, desc: "Runway slope" };
-    s[p + ".surface"] = { io: "input", type: "option", dflt: "hard", options: [{ value: "hard", text: "Hard" }, { value: "turf", text: "Turf" }, { value: "gravel", text: "Gravel" }] };
-    s[p + ".condition"] = { io: "input", type: "option", dflt: "dry", options: [{ value: "dry", text: "Dry" }, { value: "wet", text: "Wet" }, { value: "snow", text: "Snow/ice" }] };
     s[p + ".adjPct"] = { io: "input", type: "number", min: 0, max: 100, dflt: 0, desc: "Ground roll adjustment %" };
     if (withWind) { s[p + ".windDir.deg"] = { io: "input", type: "number", min: 0, max: 360, dflt: 360, desc: "Wind direction" };
       s[p + ".windSpeed.kt"] = { io: "input", type: "number", min: 0, max: 60, dflt: 0, desc: "Wind speed" }; }
     return s;
   }
   function rwyOptions() { var a = [], i; for (i = 1; i <= 36; i++) a.push({ value: (i < 10 ? "0" : "") + i }); return a; }
-  function condInputs(p, isDep) {
+  function condInputs(p, isDep, hideWhen) {
+    function ed(node) { if (hideWhen) node.hide = hideWhen; return node; }
     return [
-      { tag: "row", label: "Airport (optional)", content: "{{" + p + ".airport}}" },
-      { tag: "row", label: "Altitude (ft)", content: "{{" + p + ".elev.ft}}" },
-      { tag: "row", label: "Wind from / speed", content: "{{" + p + ".windDir.deg}} ° @ {{" + p + ".windSpeed.kt}} kt" },
-      { tag: "row", label: "OAT (°C)", content: "{{" + p + ".oat.dC}} {{" + p + ".tempInfo}}" },
-      { tag: "row", label: "Altimeter (inHg)", content: "{{" + p + ".altimeter.inhg}}" },
-      { tag: "row", label: "Runway", content: "{{" + p + ".runway}}" },
-      { tag: "row", label: (isDep ? "Runway TORA (ft)" : "Runway LDA (ft)"), content: "{{" + p + ".rwyLen.ft}}" },
-      { tag: "row", label: "Runway slope (%)", content: "{{" + p + ".slope}}" },
-      { tag: "row", label: "Runway surface", content: "{{" + p + ".surface}}" },
-      { tag: "row", label: "Runway condition", content: "{{" + p + ".condition}}" },
+      ed({ tag: "row", label: "Altitude (ft)", content: "{{" + p + ".elev.ft}}" }),
+      ed({ tag: "row", label: "Wind from / speed", content: "{{" + p + ".windDir.deg}} ° @ {{" + p + ".windSpeed.kt}} kt" }),
+      ed({ tag: "row", label: "OAT (°C)", content: "{{" + p + ".oat.dC}} {{" + p + ".tempInfo}}" }),
+      ed({ tag: "row", label: "Altimeter (inHg)", content: "{{" + p + ".altimeter.inhg}}" }),
+      ed({ tag: "row", label: "Runway", content: "{{" + p + ".runway}}" }),
+      ed({ tag: "row", label: (isDep ? "Runway TORA (ft)" : "Runway LDA (ft)"), content: "{{" + p + ".rwyLen.ft}}" }),
       { tag: "row", label: "Runway heading", content: "{{" + p + ".rwyHeadingTxt}}" },
-      { tag: "row", label: "Ground roll adj (%)", content: "{{" + p + ".adjPct}}" }
+      ed({ tag: "row", label: "Ground roll adj (%)", content: "{{" + p + ".adjPct}}" })
     ];
   }
 
@@ -182,8 +189,10 @@
     "wb.fuel.gal": { io: "input", type: "number", min: 0, max: 108, dflt: 108, desc: "Fuel" },
     "wb.burn.gal": { io: "input", type: "number", min: 0, max: 108, dflt: 40, desc: "Fuel burn to landing" },
     "wb.taxi.gal": { io: "input", type: "number", min: 0, max: 10, dflt: 2.7, desc: "Taxi fuel" },
-    "wb.front.lbs": { io: "input", type: "number", min: 0, max: 800, dflt: 340, desc: "Front seats" },
-    "wb.rear.lbs": { io: "input", type: "number", min: 0, max: 800, dflt: 0, desc: "Rear seats" },
+    "wb.frontL.lbs": { io: "input", type: "number", min: 0, max: 400, dflt: 170, desc: "Pilot" },
+    "wb.frontR.lbs": { io: "input", type: "number", min: 0, max: 400, dflt: 170, desc: "Front passenger" },
+    "wb.rearL.lbs": { io: "input", type: "number", min: 0, max: 400, dflt: 0, desc: "Rear passenger (left)" },
+    "wb.rearR.lbs": { io: "input", type: "number", min: 0, max: 400, dflt: 0, desc: "Rear passenger (right)" },
     "wb.baggage.lbs": { io: "input", type: "number", min: 0, max: 400, dflt: 0, desc: "Baggage" },
     "wb.ramp.lbs": { io: "output", type: "number", fmt: ".0" }, "wb.TOweight.lbs": { io: "output", type: "number", fmt: ".0" },
     "wb.TOCG.in": { io: "output", type: "number", fmt: ".1" }, "wb.ldgWeight.lbs": { io: "output", type: "number", fmt: ".0" },
@@ -199,8 +208,10 @@
         { tag: "row", label: "Fuel (gal) ≤108", content: "{{wb.fuel.gal}}" },
         { tag: "row", label: "Fuel used to dest (gal)", content: "{{wb.burn.gal}}" },
         { tag: "row", label: "Taxi out fuel (gal)", content: "{{wb.taxi.gal}}" },
-        { tag: "row", label: "Row 1 (lb) @ " + st.front.arm + '"', content: "{{wb.front.lbs}}" },
-        { tag: "row", label: "Row 2 (lb) @ " + st.rear.arm + '"', content: "{{wb.rear.lbs}}" },
+        { tag: "row", label: "Pilot (lb) @ " + st.front.arm + '"', content: "{{wb.frontL.lbs}}" },
+        { tag: "row", label: "Front pax (lb) @ " + st.front.arm + '"', content: "{{wb.frontR.lbs}}" },
+        { tag: "row", label: "Rear L (lb) @ " + st.rear.arm + '"', content: "{{wb.rearL.lbs}}" },
+        { tag: "row", label: "Rear R (lb) @ " + st.rear.arm + '"', content: "{{wb.rearR.lbs}}" },
         { tag: "row", label: "Baggage (lb) ≤200 @ " + st.baggage.arm + '"', content: "{{wb.baggage.lbs}}" }
       ] },
       right: { tag: "group", className: "oGroup", title: "Results", content: [
@@ -222,7 +233,12 @@
     var st = ac.data("CGstations"), lb = ac.data("fuelLbPerGal"), env = ac.data("CGenvelope");
     var cg = new CGpoint(io("ac.emptyWeight.lbs").val(), io("ac.emptyArm.in").val());
     if (!IO.isValid(cg.weight, cg.arm)) { io("wb.status").val("<b class='bad'>Enter a valid empty weight &amp; arm on the Aircraft page.</b>"); return; }
-    cg.add(io("wb.front.lbs").val(), st.front.arm); cg.add(io("wb.rear.lbs").val(), st.rear.arm); cg.add(io("wb.baggage.lbs").val(), st.baggage.arm);
+    // each row has two seats sharing one arm; a blank seat is an empty seat (0),
+    // a genuinely invalid entry propagates so results read "check input".
+    function seat(id) { var v = io(id).val(); return v === root.INVALID_NULL ? 0 : v; }
+    function rowSum(a, b) { var x = seat(a), y = seat(b); return !IO.isValid(x) ? x : !IO.isValid(y) ? y : x + y; }
+    var frontLb = rowSum("wb.frontL.lbs", "wb.frontR.lbs"), rearLb = rowSum("wb.rearL.lbs", "wb.rearR.lbs");
+    cg.add(frontLb, st.front.arm); cg.add(rearLb, st.rear.arm); cg.add(io("wb.baggage.lbs").val(), st.baggage.arm);
     var zf = new CGpoint(cg);
     var ramp = new CGpoint(cg); ramp.add(io("wb.fuel.gal").val() * lb, st.fuel.arm);
     var to = new CGpoint(ramp); to.add(-io("wb.taxi.gal").val() * lb, st.fuel.arm);
@@ -245,32 +261,49 @@
     if (!env.inEnvelope(to)) warn.push("takeoff CG out of envelope");
     if (!env.inEnvelope(ldg)) warn.push("landing CG out of envelope");
     io("wb.status").val(warn.length ? "<b class='bad'>⚠ " + warn.join("; ") + "</b>" : "<b class='ok'>Within all limits.</b>");
-    io("wb.diagram").val(pp.envelopeSVG(env, to, ldg, io("wb.fuel.gal").val(), io("wb.fuel.gal").val() * lb, to.weight - (zf.weight)));
+    var payloadLb = frontLb + rearLb + io("wb.baggage.lbs").val();
+    io("wb.diagram").val(pp.envelopeSVG(env, to, ldg, io("wb.fuel.gal").val(), io("wb.fuel.gal").val() * lb, payloadLb));
   };
   pp.envelopeSVG = function (env, to, ldg, fuelGal, fuelLb, payloadLb) {
-    var W = 330, H = 200, pad = 34, barX = W - 70;
+    var W = 340, H = 230, padL = 30, padR = 96, padT = 26, padB = 30;
+    var plotR = W - padR;                 // right edge of the envelope plot
     var poly = env.points();
     var ws = poly.map(function (p) { return p.weight; }).concat([env.minWeight]);
     var as = poly.map(function (p) { return p.arm; });
     var wMin = Math.min.apply(null, ws), wMax = Math.max.apply(null, ws.concat([to.weight, ldg.weight]));
     var aMin = Math.min.apply(null, as) - 1, aMax = Math.max.apply(null, as) + 1;
-    function x(a) { return pad + (a - aMin) / (aMax - aMin) * (barX - pad - 14); }
-    function y(w) { return H - pad - (w - wMin) / (wMax - wMin) * (H - pad - 12); }
+    function x(a) { return padL + (a - aMin) / (aMax - aMin) * (plotR - padL); }
+    function y(w) { return H - padB - (w - wMin) / (wMax - wMin) * (H - padT - padB); }
     var pts = poly.map(function (p) { return x(p.arm).toFixed(1) + "," + y(p.weight).toFixed(1); }).join(" ");
-    function dot(cg, c, lab) { if (!IO.isValid(cg.weight, cg.arm)) return "";
-      return "<circle cx='" + x(cg.arm).toFixed(1) + "' cy='" + y(cg.weight).toFixed(1) + "' r='4.5' fill='" + c + "'/>" +
-        "<text x='" + (x(cg.arm) + 6).toFixed(1) + "' y='" + (y(cg.weight) + 3).toFixed(1) + "' font-size='9' fill='#c3cdd9'>" + lab + "</text>"; }
-    var line = (IO.isValid(to.arm, ldg.arm)) ? "<line x1='" + x(to.arm).toFixed(1) + "' y1='" + y(to.weight).toFixed(1) + "' x2='" + x(ldg.arm).toFixed(1) + "' y2='" + y(ldg.weight).toFixed(1) + "' stroke='#56c7ff' stroke-width='2'/>" : "";
-    // fuel/load bar
-    var bar = "<rect x='" + barX + "' y='40' width='16' height='120' fill='#56c7ff'/>" +
-      "<text x='" + (barX + 8) + "' y='34' text-anchor='middle' font-size='9' fill='#56c7ff'>Fuel</text>" +
-      "<text x='" + (barX + 24) + "' y='100' font-size='9' fill='#56c7ff'>" + Math.round(fuelGal) + " gal</text>" +
-      "<text x='" + (barX + 24) + "' y='112' font-size='9' fill='#56c7ff'>" + Math.round(fuelLb) + " lb</text>" +
-      "<text x='" + (barX + 8) + "' y='174' text-anchor='middle' font-size='9' fill='#3fd896'>Load</text>";
-    return "<svg viewBox='0 0 " + W + " " + H + "' class='f-svg' role='img' aria-label='CG envelope'>" +
-      "<polygon points='" + pts + "' fill='rgba(120,140,170,.12)' stroke='#5a6675' stroke-width='1.2'/>" +
-      "<text x='" + pad + "' y='12' font-size='9' fill='#8a94a2'>← Fwd     Aft →     (arm in / weight lb)</text>" +
-      line + dot(to, "#3fd896", "T/O") + dot(ldg, "#3fd896", "Ldg") + bar + "</svg>";
+    function dot(cg, c, lab, below) { if (!IO.isValid(cg.weight, cg.arm)) return "";
+      var cxv = x(cg.arm), cyv = y(cg.weight), ly = below ? cyv + 13 : cyv - 7;
+      return "<circle cx='" + cxv.toFixed(1) + "' cy='" + cyv.toFixed(1) + "' r='4.5' fill='" + c + "'/>" +
+        "<text x='" + cxv.toFixed(1) + "' y='" + ly.toFixed(1) + "' text-anchor='middle' font-size='9' fill='var(--svg-ink,#222)' font-weight='700'>" + lab + "</text>"; }
+    var line = (IO.isValid(to.arm, ldg.arm)) ? "<line x1='" + x(to.arm).toFixed(1) + "' y1='" + y(to.weight).toFixed(1) + "' x2='" + x(ldg.arm).toFixed(1) + "' y2='" + y(ldg.weight).toFixed(1) + "' stroke='#1c3fbf' stroke-width='2'/>" : "";
+
+    // proportional stacked fuel(blue)/load(green) bar
+    var bx = plotR + 30, bw = 18, bTop = padT + 6, bBot = H - padB, bH = bBot - bTop;
+    var fLb = IO.isValid(fuelLb) ? Math.max(0, fuelLb) : 0;
+    var pLb = IO.isValid(payloadLb) ? Math.max(0, payloadLb) : 0;
+    var tot = fLb + pLb;
+    var hF = tot > 0 ? bH * fLb / tot : 0, hL = tot > 0 ? bH * pLb / tot : 0;
+    var blue = "#1c3fbf", green = "#1f9d57", lx = bx + bw + 4;
+    var bar =
+      "<rect x='" + bx + "' y='" + bTop + "' width='" + bw + "' height='" + bH + "' fill='var(--svg-track,#eceef1)' stroke='var(--svg-line,#c4c8ce)'/>" +
+      "<rect x='" + bx + "' y='" + bTop.toFixed(1) + "' width='" + bw + "' height='" + hF.toFixed(1) + "' fill='" + blue + "'/>" +
+      "<rect x='" + bx + "' y='" + (bTop + hF).toFixed(1) + "' width='" + bw + "' height='" + hL.toFixed(1) + "' fill='" + green + "'/>" +
+      "<text x='" + (bx + bw / 2).toFixed(1) + "' y='" + (bTop - 6).toFixed(1) + "' text-anchor='middle' font-size='9' fill='" + blue + "' font-weight='700'>Fuel</text>" +
+      "<text x='" + lx + "' y='" + (bTop + 12).toFixed(1) + "' font-size='9' fill='" + blue + "' font-weight='700'>" + Math.round(fuelGal) + " gal</text>" +
+      "<text x='" + lx + "' y='" + (bTop + 24).toFixed(1) + "' font-size='9' fill='" + blue + "' font-weight='700'>" + Math.round(fLb) + " lb</text>" +
+      "<text x='" + lx + "' y='" + (bBot - 4).toFixed(1) + "' font-size='9' fill='" + green + "' font-weight='700'>" + Math.round(pLb) + " lb</text>" +
+      "<text x='" + (bx + bw / 2).toFixed(1) + "' y='" + (bBot + 11).toFixed(1) + "' text-anchor='middle' font-size='9' fill='" + green + "' font-weight='700'>Load</text>";
+
+    return "<svg viewBox='0 0 " + W + " " + H + "' class='f-svg' role='img' aria-label='CG envelope and loading'>" +
+      "<text x='" + padL + "' y='12' font-size='9' fill='var(--svg-dim,#777)'>CG envelope — arm (in) vs weight (lb)</text>" +
+      "<polygon points='" + pts + "' fill='var(--svg-fill,rgba(120,120,140,.10))' stroke='var(--svg-stroke,#444)' stroke-width='1.2'/>" +
+      "<text x='" + padL + "' y='" + (H - 6) + "' font-size='9' fill='var(--svg-dim,#777)'>← Fwd</text>" +
+      "<text x='" + (plotR).toFixed(1) + "' y='" + (H - 6) + "' text-anchor='end' font-size='9' fill='var(--svg-dim,#777)'>Aft →</text>" +
+      line + dot(to, "#1c3fbf", "T/O", false) + dot(ldg, "#0d8f4f", "Ldg", true) + bar + "</svg>";
   };
 
   /* ===========================================================================
@@ -278,7 +311,6 @@
    * ==========================================================================*/
   pp.depPage = ctl.newPage("departure");
   pp.depPage.stateInfo = function () { var s = condState("dep", true); Object.assign(s, {
-    "dep.flaps": { io: "input", type: "option", dflt: "up", options: [{ value: "up", text: "Up" }, { value: "25", text: "25°" }] },
     "dep.roll.ft": { io: "output", type: "number", invalidFn: pp.distErr() }, "dep.obs.ft": { io: "output", type: "number", invalidFn: pp.distErr() },
     "dep.accel.ft": { io: "output", type: "number", invalidFn: pp.distErr() }, "dep.safeRoll.ft": { io: "output", type: "number", fmt: ".0" },
     "dep.safeObs.ft": { io: "output", type: "number", fmt: ".0" }, "dep.rwyLeft.ft": { io: "output", type: "number", fmt: ".0" },
@@ -290,7 +322,7 @@
   }); return s; };
   pp.depPage.viewTemplate = function () { return { tag: "page", title: "Departure", sub: ac.headerSub(), content: [
     { tag: "cols",
-      left: { tag: "group", className: "iGroup", title: "Settings", content: condInputs("dep", true).concat([{ tag: "row", label: "Flaps", content: "{{dep.flaps}}" }]) },
+      left: { tag: "group", className: "iGroup", title: "Settings", content: condInputs("dep", true) },
       right: { tag: "group", className: "oGroup", title: "Results", content: [
         { tag: "row", content: "{{dep.graphic}}" },
         { tag: "row", content: "{{dep.summary}}" },
@@ -318,6 +350,7 @@
    * ==========================================================================*/
   pp.destPage = ctl.newPage("destination");
   pp.destPage.stateInfo = function () { var s = condState("dest", true); Object.assign(s, {
+    "dest.linkDep": { io: "input", type: "option", dflt: "no", options: [{ value: "no", text: "No (enter separately)" }, { value: "yes", text: "Yes (same as Departure)" }] },
     "dest.roll.ft": { io: "output", type: "number", invalidFn: pp.distErr() }, "dest.obs.ft": { io: "output", type: "number", invalidFn: pp.distErr() },
     "dest.safeRoll.ft": { io: "output", type: "number", fmt: ".0" }, "dest.safeObs.ft": { io: "output", type: "number", fmt: ".0" }, "dest.rwyLeft.ft": { io: "output", type: "number", fmt: ".0" },
     "dest.vref": { io: "output", type: "number" }, "dest.vx": { io: "output", type: "number" }, "dest.vy": { io: "output", type: "number" },
@@ -328,7 +361,10 @@
   }); return s; };
   pp.destPage.viewTemplate = function () { return { tag: "page", title: "Destination", sub: ac.headerSub(), content: [
     { tag: "cols",
-      left: { tag: "group", className: "iGroup", title: "Settings", content: condInputs("dest", false) },
+      left: { tag: "group", className: "iGroup", title: "Settings", content: [
+        { tag: "row", label: "Use departure settings", content: "{{dest.linkDep}}" },
+        { tag: "row", label: "", content: "<span class='dim'>Altitude, wind, OAT, altimeter, runway &amp; TORA copied from Departure.</span>", show: { "dest.linkDep": "yes" } }
+      ].concat(condInputs("dest", false, { "dest.linkDep": "yes" })) },
       right: { tag: "group", className: "oGroup", title: "Results", content: [
         { tag: "row", content: "{{dest.graphic}}" },
         { tag: "row", content: "{{dest.summary}}" },
@@ -347,6 +383,12 @@
   ] }; };
   pp.destPage.computeInfo = function () { return [
     { inputs: ["wb.ldgWeight.lbs"], fn: pp.copyOnChange("wb.ldgWeight.lbs", "dest.weight.lbs", function (v) { return Math.round(v); }) },
+    { inputs: ["dest.linkDep", { page: "dep", io: "input" }], fn: function () {
+        if (io("dest.linkDep").val() !== "yes") return;
+        ["elev.ft", "oat.dC", "altimeter.inhg", "windDir.deg", "windSpeed.kt", "runway", "rwyLen.ft"].forEach(function (k) {
+          io("dest." + k).val(io("dep." + k).val());
+        });
+    } },
     { inputs: [{ page: "dest", io: "input" }], outputs: [{ page: "dest", io: "output" }], fn: function () { pp.runwayCompute("dest", false); } }
   ]; };
 
@@ -363,7 +405,7 @@
     var weightSrc = isDep ? "wb.TOweight.lbs" : "wb.ldgWeight.lbs";
     var fromWB = io(weightSrc) && io(weightSrc).isValid();
     io(p + ".note").val((fromWB ? "Weight from Weight &amp; Balance (" + Math.round(io(weightSrc).val()) + " lb), editable above. " : "Run Weight &amp; Balance to carry your actual weight here. ") +
-      "Distances are <b>DIGITIZED · VERIFY</b>. POH publishes no slope/surface/condition correction — those inputs and the ground-roll adjustment % apply only the manual margin you set. Temperatures below 15°C are fully supported via density altitude.");
+      "Distances are <b>DIGITIZED · VERIFY</b>. The ground-roll adjustment % applies only the manual margin you set. Temperatures below 15°C are fully supported via density altitude.");
     if (!IO.isValid(a.oat)) { io(p + ".windTxt").val("<b class='bad'>OAT out of range (POH chart axis −40 to +50°C).</b>"); return; }
     io(p + ".da.ft").val(Math.round(a.da));
     // wind text
@@ -411,6 +453,27 @@
     mp = mp * (1 + ac.data("cruiseMPperC") * isa); // POH note: ±~1% MP per 8°C
     return { mp: U.round(mp, 1), ff: blk.ffPerEngineGph, bhp: blk.bhp };
   };
+  // Work backwards on the climb chart: find the density altitude where rate of
+  // climb falls to targetFpm (50 = service ceiling, 0 = absolute ceiling).
+  // The climb line is near-linear; beyond the charted points we extrapolate
+  // along the last segment's slope (flagged to the user as derived/VERIFY).
+  pp.ceiling = function (config, targetFpm) {
+    var tbl = ac.data("climbROC");
+    var grp = tbl.a.filter(function (r) { return r.p === config; })[0];
+    if (!grp || !grp.a || grp.a.length < 2) return root.INVALID_NULL;
+    var pts = grp.a;                                   // {p:da, v:fpm}, da asc, fpm desc
+    if (targetFpm >= pts[0].v) return pts[0].p;        // already at/below target at SL
+    var i;
+    for (i = 0; i < pts.length - 1; i++) {
+      if (targetFpm <= pts[i].v && targetFpm >= pts[i + 1].v) {
+        return U.interp(targetFpm, pts[i].v, pts[i].p, pts[i + 1].v, pts[i + 1].p);
+      }
+    }
+    var n = pts.length, a1 = pts[n - 2], a2 = pts[n - 1];
+    var slope = (a2.v - a1.v) / (a2.p - a1.p);         // fpm per ft (negative)
+    if (slope >= 0) return root.INVALID_NULL;
+    return a2.p + (targetFpm - a2.v) / slope;
+  };
   pp.enrtPage = ctl.newPage("enroute");
   pp.enrtPage.stateInfo = function () { return {
     "cr.pa.ft": { io: "input", type: "number", min: 0, max: 14000, dflt: 5500, desc: "Cruise pressure altitude" },
@@ -429,7 +492,9 @@
     "cr.tas.kt": { io: "output", type: "number" }, "cr.gs.kt": { io: "output", type: "number" }, "cr.ete": { io: "output", type: "html" },
     "cr.fuelToDest.gal": { io: "output", type: "number", fmt: ".1" }, "cr.fuelAtDest.gal": { io: "output", type: "number", fmt: ".1" },
     "cr.range.nm": { io: "output", type: "number", fmt: ".0" }, "cr.endur": { io: "output", type: "html" }, "cr.eff": { io: "output", type: "number", fmt: ".1" },
-    "cr.mpMsg": { io: "output", type: "html" }, "cr.warn": { io: "output", type: "html" }
+    "cr.mpMsg": { io: "output", type: "html" }, "cr.warn": { io: "output", type: "html" },
+    "cr.svcCeil2": { io: "output", type: "number", fmt: ".0" }, "cr.absCeil2": { io: "output", type: "number", fmt: ".0" },
+    "cr.svcCeil1": { io: "output", type: "number", fmt: ".0" }, "cr.absCeil1": { io: "output", type: "number", fmt: ".0" }
   }; };
   pp.enrtPage.viewTemplate = function () { return { tag: "page", title: "Enroute", sub: ac.headerSub(), content: [
     { tag: "cols",
@@ -451,13 +516,18 @@
         { tag: "row", label: "Fuel to destination", content: "{{cr.fuelToDest.gal@}} gal · ETE {{cr.ete}}" },
         { tag: "row", label: "Fuel at destination", content: "{{cr.fuelAtDest.gal@}} gal {{cr.warn}}" },
         { tag: "row", label: "Range (to reserve)", content: "{{cr.range.nm@}} nm · endurance {{cr.endur}}" },
-        { tag: "row", label: "Cruise efficiency", content: "{{cr.eff@}} nmpg" }
+        { tag: "row", label: "Cruise efficiency", content: "{{cr.eff@}} nmpg" },
+        { tag: "row", label: "Two-engine ceiling", content: "service {{cr.svcCeil2@}} ft · absolute {{cr.absCeil2@}} ft" },
+        { tag: "row", label: "One-engine ceiling", content: "service {{cr.svcCeil1@}} ft · absolute {{cr.absCeil1@}} ft" }
       ] }
     },
-    { tag: "note", content: "Manifold pressure, RPM and fuel flow come from the POH Fuel &amp; Power Setting Table (Fig 5-23, per engine ×2). MP is temperature-corrected per the POH note (~1% per 8°C from standard). TAS is digitized from Fig 5-25." }
+    { tag: "note", content: "Manifold pressure, RPM and fuel flow come from the POH Fuel &amp; Power Setting Table (Fig 5-23, per engine ×2). MP is temperature-corrected per the POH note (~1% per 8°C from standard). TAS is digitized from Fig 5-25. Service (50 fpm) and absolute (0 fpm) ceilings are derived by working backwards along the digitized climb-rate lines (Figs 5-17/5-19) and extrapolated beyond the charted altitudes — <b>DERIVED · VERIFY</b>, at ISA they approximate pressure altitude." }
   ] }; };
   pp.enrtPage.computeInfo = function () { return [{ inputs: [{ page: "cr", io: "input" }], outputs: [{ page: "cr", io: "output" }], fn: pp.enrtCompute }]; };
   pp.enrtCompute = function () {
+    function r100(v) { return IO.isValid(v) ? Math.round(v / 100) * 100 : v; }
+    io("cr.svcCeil2").val(r100(pp.ceiling("bothUp", 50))); io("cr.absCeil2").val(r100(pp.ceiling("bothUp", 0)));
+    io("cr.svcCeil1").val(r100(pp.ceiling("oneUp", 50)));  io("cr.absCeil1").val(r100(pp.ceiling("oneUp", 0)));
     var pa = io("cr.pa.ft").val(), power = io("cr.power").val();
     var blk = ac.data("cruisePower")[power];
     // RPM options follow power; clamp current rpm

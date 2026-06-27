@@ -53,6 +53,21 @@ linking to its page.
   weight, empty-weight arm; save / load / edit / delete to `localStorage`
   (no cloud). The last-used profile is remembered and reloaded on start. A
   loaded profile's empty weight + arm port automatically into Weight & Balance.
+- **Weight & Balance loading bar** — alongside the CG envelope, a proportional
+  stacked bar shows fuel in blue (with gallons and pounds) and payload/load in
+  green (pounds); both segments resize live as fuel, occupants and baggage
+  change. Takeoff (blue) and landing (green) CG points are plotted on the
+  envelope with offset, non-overlapping labels.
+- **Departure / Destination** — simplified to the inputs the POH actually
+  supports: field elevation, wind, OAT, altimeter, runway and length, plus a
+  manual ground-roll adjustment %. (Slope, surface, condition, flaps and the
+  airport field were removed — this POH publishes no slope/surface/condition
+  correction.) A **"Use departure settings"** toggle on the Destination page
+  copies altitude, wind, OAT, altimeter, runway and TORA from Departure; turn it
+  off to enter the destination independently.
+- **Ceilings (Enroute)** — two-engine and one-engine **service** (50 fpm) and
+  **absolute** (0 fpm) ceilings, derived by working backwards along the
+  digitized climb-rate lines and extrapolating to the target rates.
 - **Cruise power setting** (`Enroute`) — manifold pressure + RPM from the POH
   "Fuel & Power Setting Table" (Fig 5-23), with pressure-altitude interpolation,
   ~1%-MP-per-8C temperature correction, full-throttle ("FT") detection, plus
@@ -70,6 +85,24 @@ linking to its page.
 `service-worker.js` precaches the full asset list (same-origin only; it never
 issues a cross-origin request) and serves cache-first with an `offline.html`
 fallback. `manifest.webmanifest` + bundled icons make it installable.
+
+The layout is responsive and tuned for **Mac, iPhone and iPad**:
+
+- The Settings | Results split sits side-by-side on Mac and iPad and stacks to a
+  single column on iPhone (and iPhone portrait); the home dashboard flows from
+  four columns down to two then one as width shrinks.
+- iOS specifics handled: `100dvh` sizing (avoids the Safari address-bar cutoff),
+  16 px form controls (stops Safari's focus-zoom), larger touch targets on
+  touch devices, and safe-area insets so the header sits correctly behind the
+  status bar and the footer clears the home indicator on notched iPhones.
+
+### Installing
+
+- **iPhone / iPad (Safari):** open the page, tap the Share button, choose **Add
+  to Home Screen**. It then launches full-screen and runs offline.
+- **Mac:** open `index.html` directly, or serve it (below) and use it in Safari
+  or Chrome. In Chrome you can also Install it as an app from the address-bar
+  icon.
 
 ## Local testing
 
@@ -95,6 +128,11 @@ fallback. `manifest.webmanifest` + bundled icons make it installable.
   slope/surface numeric corrections, single-engine service ceiling, best
   single-engine glide, go-around distance, and a dedicated descent-rate chart.
   Magnetic variation is not applied (offline, no airport database).
+- Service/absolute ceilings are **derived**, not printed: the digitized climb
+  line is inverted and extrapolated past the charted altitudes to find the 50/0
+  fpm crossing. The two-engine result (~18,000 ft) is consistent with the
+  published figure; the one-engine result depends directly on the unverified
+  digitized single-engine climb numbers and should be treated as DERIVED·VERIFY.
 - Total cruise fuel flow is computed as per-engine x2 (e.g. 75% -> 11.7 x2 =
   23.4 gph); the POH's printed total-fuel box rounds 75% to 23.3 — a 0.1 gph
   rounding difference.

@@ -137,7 +137,7 @@ eq("load ports arm to ac.emptyArm", io("ac.emptyArm.in").val(), 89.1);
 eq("last-selected remembered", Store.get("pa44.lastProfile"), "N123AB");
 
 io("wb.fuel.gal").setInput(90); io("wb.burn.gal").setInput(30); io("wb.taxi.gal").setInput(2.7);
-io("wb.front.lbs").setInput(340); io("wb.rear.lbs").setInput(170); io("wb.baggage.lbs").setInput(50);
+io("wb.frontL.lbs").setInput(170); io("wb.frontR.lbs").setInput(170); io("wb.rearL.lbs").setInput(170); io("wb.rearR.lbs").setInput(0); io("wb.baggage.lbs").setInput(50);
 ctl.change();
 var tow = io("wb.TOweight.lbs").val(), ldw = io("wb.ldgWeight.lbs").val();
 ok("W&B TO weight uses loaded BEW (~3544)", Math.abs(tow - 3544) <= 2);
@@ -220,7 +220,7 @@ ok("Enroute computes at ISA-20 (cold)", typeof io("cr.mp").val() === "number");
  * K. (#4) W&B out-of-envelope / overweight warnings flag clearly
  * =======================================================================*/
 io("ac.emptyWeight.lbs").setInput(2460); io("ac.emptyArm.in").setInput(89.1);
-io("wb.fuel.gal").setInput(108); io("wb.front.lbs").setInput(700); io("wb.rear.lbs").setInput(400); io("wb.baggage.lbs").setInput(200);
+io("wb.fuel.gal").setInput(108); io("wb.frontL.lbs").setInput(350); io("wb.frontR.lbs").setInput(350); io("wb.rearL.lbs").setInput(200); io("wb.rearR.lbs").setInput(200); io("wb.baggage.lbs").setInput(200);
 io("wb.burn.gal").setInput(0); io("wb.taxi.gal").setInput(0);
 ctl.change();
 ok("overweight load produces a warning", /(&gt;|>|over)/i.test(String(io("wb.status").val())));
@@ -230,7 +230,7 @@ ok("TO status badge not OK when overweight", /(OVER WT|CG)/.test(String(io("wb.T
  * L. (#5,#6) Home dashboard summarizes results + acName reflects profile
  * =======================================================================*/
 io("ac.emptyWeight.lbs").setInput(2460); io("ac.emptyArm.in").setInput(89.1);
-io("wb.front.lbs").setInput(340); io("wb.rear.lbs").setInput(170); io("wb.baggage.lbs").setInput(50);
+io("wb.frontL.lbs").setInput(170); io("wb.frontR.lbs").setInput(170); io("wb.rearL.lbs").setInput(170); io("wb.rearR.lbs").setInput(0); io("wb.baggage.lbs").setInput(50);
 io("wb.fuel.gal").setInput(90); io("wb.burn.gal").setInput(30); io("wb.taxi.gal").setInput(2.7);
 io("ac.reg").setInput("N123AB"); ctl.change();
 ctl.current("home"); view.render();
@@ -240,6 +240,48 @@ ok("home summarizes a takeoff distance", /takeoff/i.test(homeHTML));
 ok("home references weight & balance", /(weight|balance|CG)/i.test(homeHTML));
 io("ac.reg").setInput(""); ctl.change(); ctl.current("home"); view.render();
 ok("home flags Default aircraft when no reg", view.mount.innerHTML.indexOf("Default aircraft") >= 0);
+
+/* =========================================================================
+ * M. Modifications: removed inputs, ceilings, dep/dest link, W&B bar
+ * =======================================================================*/
+/* (2,4) slope/surface/condition/flaps/airport inputs removed */
+["dep.airport", "dep.slope", "dep.surface", "dep.condition", "dep.flaps",
+ "dest.airport", "dest.slope", "dest.surface", "dest.condition"].forEach(function (id) {
+  ok("removed input gone: " + id, !IO.isElt(id));
+});
+
+/* (3) service/absolute ceilings derived by inverting the climb-rate lines */
+ctl.change();
+near("2-eng service ceiling ~18200", io("cr.svcCeil2").val(), 18200, 50);
+near("2-eng absolute ceiling ~18900", io("cr.absCeil2").val(), 18900, 50);
+near("1-eng service ceiling ~6100", io("cr.svcCeil1").val(), 6100, 50);
+near("1-eng absolute ceiling ~7900", io("cr.absCeil1").val(), 7900, 50);
+ok("service ceiling below absolute (2-eng)", io("cr.svcCeil2").val() < io("cr.absCeil2").val());
+ok("1-eng ceiling below 2-eng ceiling", io("cr.absCeil1").val() < io("cr.absCeil2").val());
+
+/* (5) departure/destination link toggle */
+io("dep.elev.ft").setInput(2500); io("dep.oat.dC").setInput(7); io("dep.altimeter.inhg").setInput(29.80);
+io("dep.windDir.deg").setInput(120); io("dep.windSpeed.kt").setInput(11); io("dep.runway").val("12"); io("dep.rwyLen.ft").setInput(4200);
+io("dest.linkDep").val("yes"); ctl.change();
+eq("link copies elevation", io("dest.elev.ft").val(), 2500);
+eq("link copies OAT", io("dest.oat.dC").val(), 7);
+eq("link copies runway", io("dest.runway").val(), "12");
+eq("link copies TORA/LDA", io("dest.rwyLen.ft").val(), 4200);
+io("dest.linkDep").val("no"); io("dest.elev.ft").setInput(900); ctl.change();
+eq("unlinked destination is independent", io("dest.elev.ft").val(), 900);
+eq("departure unchanged by unlink", io("dep.elev.ft").val(), 2500);
+
+/* (1,6) W&B diagram: proportional blue fuel + green load bar with labels */
+io("ac.emptyWeight.lbs").setInput(2430); io("ac.emptyArm.in").setInput(88.5);
+io("wb.fuel.gal").setInput(60); io("wb.frontL.lbs").setInput(170); io("wb.frontR.lbs").setInput(170); io("wb.rearL.lbs").setInput(170); io("wb.rearR.lbs").setInput(0); io("wb.baggage.lbs").setInput(40); ctl.change();
+var dg = String(io("wb.diagram").val());
+ok("W&B bar has blue fuel fill", dg.indexOf("#1c3fbf") >= 0);
+ok("W&B bar has green load fill", dg.indexOf("#1f9d57") >= 0);
+ok("W&B bar labels fuel gal", dg.indexOf("60 gal") >= 0);
+ok("W&B bar labels fuel lb", dg.indexOf("360 lb") >= 0);
+ok("W&B bar labels load lb", dg.indexOf("550 lb") >= 0);
+io("wb.fuel.gal").setInput(100); ctl.change();
+ok("W&B bar updates with fuel change", String(io("wb.diagram").val()).indexOf("100 gal") >= 0);
 
 console.log("\n" + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
