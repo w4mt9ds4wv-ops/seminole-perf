@@ -10,10 +10,10 @@
     { id: "aircraft", label: "Aircraft" },
     { id: "wb", label: "Weight & Balance" },
     { id: "departure", label: "Departure" },
+    { id: "climb", label: "Climb" },
     { id: "enroute", label: "Enroute" },
     { id: "destination", label: "Destination" },
-    { id: "climb", label: "Climb" },
-    { id: "reference", label: "Reference" }
+    { id: "settings", label: "Settings" }
   ];
   var home = { initial: "home" };
   root.home = home;
@@ -35,6 +35,7 @@
 
   home.start = function () {
     view.mount = doc.getElementById("f-main");
+    if (root.pp && root.pp.applyTheme) root.pp.applyTheme();
     ctl.init();
     buildNav();
     ctl.change();

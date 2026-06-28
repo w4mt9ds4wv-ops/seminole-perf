@@ -44,7 +44,7 @@
     var lo = (num < 10 ? "0" : "") + num;
     var opp = ((num + 18 - 1) % 36) + 1, hi = (opp < 10 ? "0" : "") + opp;
     var mono = "ui-monospace,SFMono-Regular,Menlo,monospace";
-    var s = "<circle cx='" + cx + "' cy='" + cy + "' r='" + R + "' fill='none' stroke='var(--svg-line,#dde2e9)' stroke-width='1.5'/>";
+    var s = "";
     // runway slab + dashed centerline + threshold numbers (near end = selected runway)
     s += "<rect x='" + (cx - 15) + "' y='" + (cy - 54) + "' width='30' height='108' rx='4' fill='var(--rwy-slab,#3b4149)'/>";
     s += "<line x1='" + cx + "' y1='" + (cy - 44) + "' x2='" + cx + "' y2='" + (cy + 44) + "' stroke='#f1f4f8' stroke-width='2' stroke-dasharray='7 7' stroke-linecap='round'/>";
@@ -217,14 +217,14 @@
       right: { tag: "group", className: "oGroup", title: "Results", content: [
         { tag: "row", content: "{{wb.diagram}}" },
         { tag: "row", content: "{{wb.status}}" },
-        { tag: "row", label: "Takeoff weight", content: "{{wb.TOweight.lbs@}} lb {{wb.TOstatus}}" },
-        { tag: "row", label: "Takeoff CG", content: "{{wb.TOCG.in@}} in" },
-        { tag: "row", label: "Landing weight", content: "{{wb.ldgWeight.lbs@}} lb {{wb.ldgStatus}}" },
-        { tag: "row", label: "Landing CG", content: "{{wb.ldgCG.in@}} in" },
-        { tag: "row", label: "Zero-fuel weight / CG", content: "{{wb.zfWeight.lbs@}} lb · {{wb.zfCG.in@}} in" },
-        { tag: "row", label: "Ramp weight", content: "{{wb.ramp.lbs@}} lb" },
-        { tag: "row", label: "Max fuel load", content: "{{wb.maxFuel.gal@}} gal" },
-        { tag: "row", label: "Additional payload", content: "{{wb.addPayload.lbs@}} lb" }
+        { tag: "row", label: "Takeoff weight", content: "{{wb.TOweight.lbs@}} {{wb.TOstatus}}" },
+        { tag: "row", label: "Takeoff CG", content: "{{wb.TOCG.in@}}" },
+        { tag: "row", label: "Landing weight", content: "{{wb.ldgWeight.lbs@}} {{wb.ldgStatus}}" },
+        { tag: "row", label: "Landing CG", content: "{{wb.ldgCG.in@}}" },
+        { tag: "row", label: "Zero-fuel weight / CG", content: "{{wb.zfWeight.lbs@}} · {{wb.zfCG.in@}}" },
+        { tag: "row", label: "Ramp weight", content: "{{wb.ramp.lbs@}}" },
+        { tag: "row", label: "Max fuel load", content: "{{wb.maxFuel.gal@}}" },
+        { tag: "row", label: "Additional payload", content: "{{wb.addPayload.lbs@}}" }
       ] }
     }
   ] }; };
@@ -324,18 +324,18 @@
     { tag: "cols",
       left: { tag: "group", className: "iGroup", title: "Settings", content: condInputs("dep", true) },
       right: { tag: "group", className: "oGroup", title: "Results", content: [
-        { tag: "row", content: "{{dep.graphic}}" },
+        { tag: "row", className: "rwyrow", content: "{{dep.graphic}}" },
         { tag: "row", content: "{{dep.summary}}" },
         { tag: "row", content: "{{dep.windTxt}}" },
-        { tag: "row", label: "Takeoff roll", content: "{{dep.roll.ft@}} ft", },
-        { tag: "row", label: "Runway remaining", content: "{{dep.rwyLeft.ft@}} ft" },
-        { tag: "row", label: "50-ft obstacle", content: "{{dep.obs.ft@}} ft @ {{dep.vobs@}} kias" },
-        { tag: "row", label: "Safe TORA / obs", content: "{{dep.safeRoll.ft@}} / {{dep.safeObs.ft@}} ft" },
+        { tag: "row", label: "Takeoff roll", content: "{{dep.roll.ft@}}", },
+        { tag: "row", label: "Runway remaining", content: "{{dep.rwyLeft.ft@}}" },
+        { tag: "row", label: "50-ft obstacle", content: "{{dep.obs.ft@}} @ {{dep.vobs@}} kias" },
+        { tag: "row", label: "Safe TORA / obs", content: "{{dep.safeRoll.ft@}} / {{dep.safeObs.ft@}}" },
         { tag: "row", label: "Vr / Vx / Vy", content: "{{dep.vr@}} / {{dep.vx@}} / {{dep.vy@}} kias" },
         { tag: "row", label: "Stall (clean / land)", content: "{{dep.vsClean@}} / {{dep.vsLand@}} kias" },
         { tag: "row", label: "VA", content: "{{dep.va@}} kias" },
-        { tag: "row", label: "Density altitude", content: "{{dep.da.ft@}} ft" },
-        { tag: "row", label: "Accelerate-stop", content: "{{dep.accel.ft@}} ft {{dep.accelMsg}}" }
+        { tag: "row", label: "Density altitude", content: "{{dep.da.ft@}}" },
+        { tag: "row", label: "Accelerate-stop", content: "{{dep.accel.ft@}} {{dep.accelMsg}}" }
       ] }
     },
     { tag: "note", content: "{{dep.note}}" }
@@ -366,17 +366,17 @@
         { tag: "row", label: "", content: "<span class='dim'>Altitude, wind, OAT, altimeter, runway &amp; TORA copied from Departure.</span>", show: { "dest.linkDep": "yes" } }
       ].concat(condInputs("dest", false, { "dest.linkDep": "yes" })) },
       right: { tag: "group", className: "oGroup", title: "Results", content: [
-        { tag: "row", content: "{{dest.graphic}}" },
+        { tag: "row", className: "rwyrow", content: "{{dest.graphic}}" },
         { tag: "row", content: "{{dest.summary}}" },
         { tag: "row", content: "{{dest.windTxt}}" },
-        { tag: "row", label: "Landing roll", content: "{{dest.roll.ft@}} ft @ {{dest.vref@}} kias" },
-        { tag: "row", label: "Runway remaining", content: "{{dest.rwyLeft.ft@}} ft" },
-        { tag: "row", label: "50-ft obstacle", content: "{{dest.obs.ft@}} ft" },
-        { tag: "row", label: "Safe LDA / obs", content: "{{dest.safeRoll.ft@}} / {{dest.safeObs.ft@}} ft" },
+        { tag: "row", label: "Landing roll", content: "{{dest.roll.ft@}} @ {{dest.vref@}} kias" },
+        { tag: "row", label: "Runway remaining", content: "{{dest.rwyLeft.ft@}}" },
+        { tag: "row", label: "50-ft obstacle", content: "{{dest.obs.ft@}}" },
+        { tag: "row", label: "Safe LDA / obs", content: "{{dest.safeRoll.ft@}} / {{dest.safeObs.ft@}}" },
         { tag: "row", label: "Vref / Vx / Vy", content: "{{dest.vref@}} / {{dest.vx@}} / {{dest.vy@}} kias" },
         { tag: "row", label: "Stall (clean / land)", content: "{{dest.vsClean@}} / {{dest.vsLand@}} kias" },
         { tag: "row", label: "VA", content: "{{dest.va@}} kias" },
-        { tag: "row", label: "Density altitude", content: "{{dest.da.ft@}} ft" }
+        { tag: "row", label: "Density altitude", content: "{{dest.da.ft@}}" }
       ] }
     },
     { tag: "note", content: "{{dest.note}}" }
@@ -427,7 +427,7 @@
     if (isDep) { io("dep.vr").val(ac.data("rotateKias").interpolate(wt)); io("dep.vobs").val(ac.data("obstacleKias").interpolate(wt));
       var accel = ac.data("accelStop").dist(a.oat, a.pa, wt, w.head); if (typeof accel === "number") accel = Math.round(accel * adj);
       io("dep.accel.ft").val(accel);
-      if (typeof accel === "number" && IO.isValid(tora) && tora > 0 && accel > tora) io("dep.accelMsg").val("<b class='bad'>&gt; runway length</b>");
+      io("dep.accelMsg").val(typeof accel === "number" && IO.isValid(tora) && tora > 0 && accel > tora ? "<b class='bad'>&gt; runway length</b>" : "");
     } else { io("dest.vref").val(ac.data("approachKias").interpolate(wt)); }
     // results summary banner
     var head = (w.head >= 0 ? "head " + Math.round(w.head) : "tail " + Math.round(-w.head)) + " kt";
@@ -457,11 +457,23 @@
   // climb falls to targetFpm (50 = service ceiling, 0 = absolute ceiling).
   // The climb line is near-linear; beyond the charted points we extrapolate
   // along the last segment's slope (flagged to the user as derived/VERIFY).
-  pp.ceiling = function (config, targetFpm) {
-    var tbl = ac.data("climbROC");
-    var grp = tbl.a.filter(function (r) { return r.p === config; })[0];
-    if (!grp || !grp.a || grp.a.length < 2) return root.INVALID_NULL;
-    var pts = grp.a;                                   // {p:da, v:fpm}, da asc, fpm desc
+  pp.ceiling = function (config, targetFpm, weight) {
+    var slices = ac.data("ceilingByWeight")[config];
+    if (!slices) return root.INVALID_NULL;
+    var ws = Object.keys(slices).map(Number).sort(function (a, b) { return a - b; });
+    var pts;                                           // [{p:da, v:fpm}], da asc, fpm desc
+    if (ws.length >= 2 && IO.isValid(weight)) {
+      var w = Math.max(ws[0], Math.min(ws[ws.length - 1], weight)); // no extrapolation past data
+      var lo = ws[0], hi = ws[ws.length - 1], k;
+      for (k = 0; k < ws.length - 1; k++) { if (w >= ws[k] && w <= ws[k + 1]) { lo = ws[k]; hi = ws[k + 1]; break; } }
+      var pL = slices[lo], pH = slices[hi];
+      pts = pL.map(function (pt, idx) {
+        return { p: pt.da, v: lo === hi ? pt.fpm : U.interp(w, lo, pt.fpm, hi, pH[idx].fpm) };
+      });
+    } else {
+      pts = slices[ws[0]].map(function (pt) { return { p: pt.da, v: pt.fpm }; });
+    }
+    if (pts.length < 2) return root.INVALID_NULL;
     if (targetFpm >= pts[0].v) return pts[0].p;        // already at/below target at SL
     var i;
     for (i = 0; i < pts.length - 1; i++) {
@@ -494,7 +506,8 @@
     "cr.range.nm": { io: "output", type: "number", fmt: ".0" }, "cr.endur": { io: "output", type: "html" }, "cr.eff": { io: "output", type: "number", fmt: ".1" },
     "cr.mpMsg": { io: "output", type: "html" }, "cr.warn": { io: "output", type: "html" },
     "cr.svcCeil2": { io: "output", type: "number", fmt: ".0" }, "cr.absCeil2": { io: "output", type: "number", fmt: ".0" },
-    "cr.svcCeil1": { io: "output", type: "number", fmt: ".0" }, "cr.absCeil1": { io: "output", type: "number", fmt: ".0" }
+    "cr.svcCeil1": { io: "output", type: "number", fmt: ".0" }, "cr.absCeil1": { io: "output", type: "number", fmt: ".0" },
+    "cr.ceilWt.lbs": { io: "output", type: "number", fmt: ".0" }
   }; };
   pp.enrtPage.viewTemplate = function () { return { tag: "page", title: "Enroute", sub: ac.headerSub(), content: [
     { tag: "cols",
@@ -512,22 +525,27 @@
       right: { tag: "group", className: "oGroup", title: "Results", content: [
         { tag: "row", label: "Power setting", content: "{{cr.rpmOut@}} RPM · {{cr.mp@}} in MP · {{cr.mcp@}}% {{cr.mpMsg}}" },
         { tag: "row", label: "Fuel flow (total)", content: "{{cr.gph@}} gph ({{cr.pph@}} pph)" },
-        { tag: "row", label: "True airspeed", content: "{{cr.tas.kt@}} kt · GS {{cr.gs.kt@}} kt" },
-        { tag: "row", label: "Fuel to destination", content: "{{cr.fuelToDest.gal@}} gal · ETE {{cr.ete}}" },
-        { tag: "row", label: "Fuel at destination", content: "{{cr.fuelAtDest.gal@}} gal {{cr.warn}}" },
-        { tag: "row", label: "Range (to reserve)", content: "{{cr.range.nm@}} nm · endurance {{cr.endur}}" },
+        { tag: "row", label: "True airspeed", content: "{{cr.tas.kt@}} · GS {{cr.gs.kt@}}" },
+        { tag: "row", label: "Fuel to destination", content: "{{cr.fuelToDest.gal@}} · ETE {{cr.ete}}" },
+        { tag: "row", label: "Fuel at destination", content: "{{cr.fuelAtDest.gal@}} {{cr.warn}}" },
+        { tag: "row", label: "Range (to reserve)", content: "{{cr.range.nm@}} · endurance {{cr.endur}}" },
         { tag: "row", label: "Cruise efficiency", content: "{{cr.eff@}} nmpg" },
+        { tag: "row", label: "Ceiling basis weight", content: "{{cr.ceilWt.lbs@}} <span class='dim'>(takeoff weight from W&amp;B)</span>" },
         { tag: "row", label: "Two-engine ceiling", content: "service {{cr.svcCeil2@}} ft · absolute {{cr.absCeil2@}} ft" },
         { tag: "row", label: "One-engine ceiling", content: "service {{cr.svcCeil1@}} ft · absolute {{cr.absCeil1@}} ft" }
       ] }
     },
-    { tag: "note", content: "Manifold pressure, RPM and fuel flow come from the POH Fuel &amp; Power Setting Table (Fig 5-23, per engine ×2). MP is temperature-corrected per the POH note (~1% per 8°C from standard). TAS is digitized from Fig 5-25. Service (50 fpm) and absolute (0 fpm) ceilings are derived by working backwards along the digitized climb-rate lines (Figs 5-17/5-19) and extrapolated beyond the charted altitudes — <b>DERIVED · VERIFY</b>, at ISA they approximate pressure altitude." }
+    { tag: "note", content: "Manifold pressure, RPM and fuel flow come from the POH Fuel &amp; Power Setting Table (Fig 5-23, per engine ×2). MP is temperature-corrected per the POH note (~1% per 8°C from standard). TAS is digitized from Fig 5-25. Service (50 fpm) and absolute (0 fpm) ceilings are derived by working backwards along the digitized climb-rate lines (Figs 5-17/5-19) and extrapolated beyond the charted altitudes — <b>DERIVED · VERIFY</b>. They vary with the takeoff weight from Weight &amp; Balance; only the max-gross (3,800 lb) climb line is digitized so far, so add the POH weight lines to make the weight variation exact." }
   ] }; };
   pp.enrtPage.computeInfo = function () { return [{ inputs: [{ page: "cr", io: "input" }], outputs: [{ page: "cr", io: "output" }], fn: pp.enrtCompute }]; };
   pp.enrtCompute = function () {
     function r100(v) { return IO.isValid(v) ? Math.round(v / 100) * 100 : v; }
-    io("cr.svcCeil2").val(r100(pp.ceiling("bothUp", 50))); io("cr.absCeil2").val(r100(pp.ceiling("bothUp", 0)));
-    io("cr.svcCeil1").val(r100(pp.ceiling("oneUp", 50)));  io("cr.absCeil1").val(r100(pp.ceiling("oneUp", 0)));
+    // ceilings are derived from the climb-rate lines and vary with weight; use the
+    // computed takeoff weight from W&B, falling back to max gross if unavailable.
+    var ceilWt = io("wb.TOweight.lbs").val(); if (!IO.isValid(ceilWt)) ceilWt = ac.data("maxTOweight");
+    io("cr.ceilWt.lbs").val(Math.round(ceilWt));
+    io("cr.svcCeil2").val(r100(pp.ceiling("bothUp", 50, ceilWt))); io("cr.absCeil2").val(r100(pp.ceiling("bothUp", 0, ceilWt)));
+    io("cr.svcCeil1").val(r100(pp.ceiling("oneUp", 50, ceilWt)));  io("cr.absCeil1").val(r100(pp.ceiling("oneUp", 0, ceilWt)));
     var pa = io("cr.pa.ft").val(), power = io("cr.power").val();
     var blk = ac.data("cruisePower")[power];
     // RPM options follow power; clamp current rpm
@@ -576,9 +594,9 @@
       ] },
       right: { tag: "group", className: "oGroup", title: "Rate of climb — DIGITIZED · VERIFY", content: [
         { tag: "row", content: "{{cl.da}}" },
-        { tag: "row", label: "Two-engine, gear up", content: "{{cl.bothUp.fpm@}} fpm" },
-        { tag: "row", label: "Two-engine, gear down", content: "{{cl.bothDown.fpm@}} fpm" },
-        { tag: "row", label: "One-engine, gear up", content: "{{cl.oneUp.fpm@}} fpm" },
+        { tag: "row", label: "Two-engine, gear up", content: "{{cl.bothUp.fpm@}}" },
+        { tag: "row", label: "Two-engine, gear down", content: "{{cl.bothDown.fpm@}}" },
+        { tag: "row", label: "One-engine, gear up", content: "{{cl.oneUp.fpm@}}" },
         { tag: "row", label: "VYSE / VXSE / VSSE", content: ac.data("speeds").Vyse + " / " + ac.data("speeds").Vxse + " / " + ac.data("speeds").Vsse + " kias" }
       ] }
     }
@@ -600,35 +618,35 @@
     function v(id, suffix) { var e = io(id); if (!e) return "—"; var val = e.val(); if (root.ppUtil.isInvalid(val)) return val === root.INVALID_POH ? "POH" : "—"; return (e.type === "number" ? root.ppUtil.fmtNum(val, (e.info.fmt || "").indexOf(".1") >= 0 ? 1 : 0) : val) + (suffix || ""); }
     return { tag: "dash",
       head: { tag: "group", className: "homeHead", content: [
-        { tag: "row", label: "Aircraft", content: [{ tag: "html", content: "{{home.acName}}" }, { tag: "button", title: "Edit", onClick: "home.select('aircraft')" }] }
+        { tag: "row", label: "Aircraft", content: [{ tag: "html", content: "{{home.acName}}" }, { tag: "button", title: "Edit", onClick: "home.select('aircraft')" }, { tag: "button", title: "Print / Save PDF", onClick: "pp.printReport()" }] }
       ] },
       panels: [
         { tag: "panel", title: "Weight & Balance", onClick: "home.select('wb')", foot: "More / Edit", content: [
           { tag: "html", content: "{{wb.diagram}}" },
           { tag: "row", label: "Status", content: "{{wb.status}}" },
-          { tag: "row", label: "Takeoff", content: "{{wb.TOweight.lbs@}} lb · CG {{wb.TOCG.in@}} {{wb.TOstatus}}" },
-          { tag: "row", label: "Landing", content: "{{wb.ldgWeight.lbs@}} lb · CG {{wb.ldgCG.in@}} {{wb.ldgStatus}}" }
+          { tag: "row", label: "Takeoff", content: "{{wb.TOweight.lbs@}} · CG {{wb.TOCG.in@}} {{wb.TOstatus}}" },
+          { tag: "row", label: "Landing", content: "{{wb.ldgWeight.lbs@}} · CG {{wb.ldgCG.in@}} {{wb.ldgStatus}}" }
         ] },
         { tag: "panel", title: "Departure", onClick: "home.select('departure')", foot: "More / Edit", content: [
           { tag: "html", content: "{{dep.graphic}}" },
           { tag: "row", content: "{{dep.windTxt}}" },
-          { tag: "row", label: "Takeoff roll", content: "{{dep.roll.ft@}} ft · Vr {{dep.vr@}}" },
-          { tag: "row", label: "50-ft obstacle", content: "{{dep.obs.ft@}} ft" },
-          { tag: "row", label: "Safe TORA", content: "{{dep.safeRoll.ft@}} ft" }
+          { tag: "row", label: "Takeoff roll", content: "{{dep.roll.ft@}} · Vr {{dep.vr@}}" },
+          { tag: "row", label: "50-ft obstacle", content: "{{dep.obs.ft@}}" },
+          { tag: "row", label: "Safe TORA", content: "{{dep.safeRoll.ft@}}" }
         ] },
         { tag: "panel", title: "Enroute", onClick: "home.select('enroute')", foot: "More / Edit", content: [
           { tag: "row", label: "Power", content: "{{cr.rpmOut@}} RPM · {{cr.mp@}} in MP · {{cr.mcp@}}%" },
           { tag: "row", label: "Fuel flow", content: "{{cr.gph@}} gph" },
-          { tag: "row", label: "TAS / GS", content: "{{cr.tas.kt@}} / {{cr.gs.kt@}} kt" },
-          { tag: "row", label: "Fuel to dest", content: "{{cr.fuelToDest.gal@}} gal · ETE {{cr.ete}}" },
+          { tag: "row", label: "TAS / GS", content: "{{cr.tas.kt@}} / {{cr.gs.kt@}}" },
+          { tag: "row", label: "Fuel to dest", content: "{{cr.fuelToDest.gal@}} · ETE {{cr.ete}}" },
           { tag: "row", label: "Reserve check", content: "{{cr.warn}}" }
         ] },
         { tag: "panel", title: "Destination", onClick: "home.select('destination')", foot: "More / Edit", content: [
           { tag: "html", content: "{{dest.graphic}}" },
           { tag: "row", content: "{{dest.windTxt}}" },
-          { tag: "row", label: "Landing roll", content: "{{dest.roll.ft@}} ft · Vref {{dest.vref@}}" },
-          { tag: "row", label: "50-ft obstacle", content: "{{dest.obs.ft@}} ft" },
-          { tag: "row", label: "Safe LDA", content: "{{dest.safeRoll.ft@}} ft" }
+          { tag: "row", label: "Landing roll", content: "{{dest.roll.ft@}} · Vref {{dest.vref@}}" },
+          { tag: "row", label: "50-ft obstacle", content: "{{dest.obs.ft@}}" },
+          { tag: "row", label: "Safe LDA", content: "{{dest.safeRoll.ft@}}" }
         ] }
       ]
     };
@@ -638,35 +656,113 @@
   } }]; };
 
   /* ===========================================================================
-   * REFERENCE & multi-engine
+   * SETTINGS — theme, planning defaults, data management, about
    * ==========================================================================*/
-  pp.refP = ctl.newPage("reference");
-  pp.refP.stateInfo = function () { return {}; };
-  pp.refP.viewTemplate = function () { var s = ac.data("speeds"), asi = ac.data("asi"); return { tag: "page", title: "Reference", sub: ac.headerSub(), content: [
-    { tag: "cols",
-      left: { tag: "group", className: "oGroup", title: "Single-engine & V-speeds (POH verified)", content: [
-        { tag: "row", label: "VMCA (red radial)", content: s.Vmca + " kias" },
-        { tag: "row", label: "VYSE (blue) / VXSE", content: s.Vyse + " / " + s.Vxse + " kias" },
-        { tag: "row", label: "VSSE", content: s.Vsse + " kias" },
-        { tag: "row", label: "VS0 / VS1 (stall)", content: s.Vs0 + " / " + s.Vs1 + " kias" },
-        { tag: "row", label: "VNE / VNO", content: s.Vne + " / " + s.Vno + " kias" },
-        { tag: "row", label: "VA @3800 / @2700", content: s.Va3800 + " / " + s.Va2700 + " kias" },
-        { tag: "row", label: "VLE / VLO ext / ret", content: s.Vle + " / " + s.VloExt + " / " + s.VloRet + " kias" },
-        { tag: "row", label: "VFE", content: s.Vfe + " kias" }
-      ] },
-      right: { tag: "group", className: "oGroup", title: "ASI / limits", content: [
-        { tag: "row", label: "Red / yellow arc", content: asi.redline + " · " + asi.yellow[0] + "–" + asi.yellow[1] },
-        { tag: "row", label: "Green / white arc", content: asi.green[0] + "–" + asi.green[1] + " · " + asi.white[0] + "–" + asi.white[1] },
-        { tag: "row", label: "Blue radial (VYSE)", content: asi.blueRadial },
-        { tag: "row", label: "Max ramp / TO / ldg", content: U.fmtNum(ac.data("maxRampWeight")) + " / " + U.fmtNum(ac.data("maxTOweight")) + " / " + U.fmtNum(ac.data("maxLdgWeight")) + " lb" },
-        { tag: "row", label: "Load factor", content: ac.data("loadFactors").up + "G / " + ac.data("loadFactors").down + "G" },
-        { tag: "row", label: "Demonstrated crosswind", content: ac.data("demonstratedCrosswind") + " kt" },
-        { tag: "row", label: "Engine-out", content: "Counter-rotating, no critical engine. 88 KIAS (VYSE), dead prop FEATHERED, 2–3° bank to live engine." }
-      ] }
-    },
-    { tag: "note", content: "Reference / planning only. Best single-engine glide: " + ac.data("notAvailable").bestGlide }
-  ] }; };
-  pp.refP.computeInfo = function () { return []; };
+  // Theme: persisted choice applied via data-theme on <html> ("auto" = follow OS).
+  pp.applyTheme = function () {
+    var mode = Store.get("pa44.theme") || "auto";
+    var el = root.document && root.document.documentElement; if (!el) return;
+    if (mode === "light" || mode === "dark") el.setAttribute("data-theme", mode); else el.removeAttribute("data-theme");
+  };
+  pp.setTheme = function (mode) { Store.set("pa44.theme", mode); pp.applyTheme(); if (root.view) root.view.render(); };
+  // Copy the saved planning defaults into the live Departure/Destination/Enroute inputs.
+  pp.applyDefaults = function () {
+    var a = io("set.adjPct").val(), r = io("set.reserve.gal").val();
+    if (IO.isValid(a)) { io("dep.adjPct").val(a); io("dest.adjPct").val(a); }
+    if (IO.isValid(r)) io("cr.reserve.gal").val(r);
+    ctl.change(); if (root.view) root.view.render();
+  };
+  pp.resetInputs = function () { if (root.confirm && !root.confirm("Reset all inputs to defaults? Saved aircraft profiles are kept.")) return; Store.del("pa44.inputs"); root.location.reload(); };
+  pp.clearProfiles = function () { if (root.confirm && !root.confirm("Delete ALL saved aircraft profiles on this device? This cannot be undone.")) return; Store.del(PKEY); Store.del(LKEY); root.location.reload(); };
+
+  // Format any state id as "value unit" for the printable report (and reuse elsewhere).
+  pp.pv = function (id) {
+    var e = io(id); if (!e) return "—";
+    var v = e.val(); if (root.ppUtil.isInvalid(v)) return v === root.INVALID_POH ? "POH" : "—";
+    var pretty = { dC: "°C", inhg: "inHg", deg: "°" }, out;
+    if (e.type === "html") out = String(v).replace(/<[^>]+>/g, "").trim();
+    else if (e.type === "number") out = root.ppUtil.fmtNum(v, (e.info.fmt || "").indexOf(".1") >= 0 ? 1 : 0);
+    else out = String(v);
+    return out + (e.unit ? " " + (pretty[e.unit] || e.unit) : "");
+  };
+  // Build a print-only report of all applicable data and open the browser print
+  // dialog (Save as PDF). No libraries — works fully offline.
+  pp.printReport = function () {
+    var doc = root.document;
+    function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+    function row(l, v) { return "<tr><td>" + esc(l) + "</td><td>" + esc(v) + "</td></tr>"; }
+    function sec(t, rows) { return "<div class='p-sec'><h2>" + esc(t) + "</h2><table>" + rows + "</table></div>"; }
+    var reg = (io("ac.reg") && io("ac.reg").val()) || "Default aircraft";
+    var n = new Date(), p2 = function (x) { return (x < 10 ? "0" : "") + x; };
+    var stamp = n.getFullYear() + "-" + p2(n.getMonth() + 1) + "-" + p2(n.getDate()) + " " + p2(n.getHours()) + ":" + p2(n.getMinutes());
+    var wb = sec("Weight & Balance",
+      row("Status", pp.pv("wb.status")) + row("Takeoff weight", pp.pv("wb.TOweight.lbs")) + row("Takeoff CG", pp.pv("wb.TOCG.in")) +
+      row("Landing weight", pp.pv("wb.ldgWeight.lbs")) + row("Landing CG", pp.pv("wb.ldgCG.in")) +
+      row("Zero-fuel weight", pp.pv("wb.zfWeight.lbs")) + row("Ramp weight", pp.pv("wb.ramp.lbs")) + row("Fuel on board", pp.pv("wb.fuel.gal")));
+    var dep = sec("Departure",
+      row("Runway", pp.pv("dep.runway")) + row("Wind", pp.pv("dep.windTxt")) + row("Density altitude", pp.pv("dep.da.ft")) +
+      row("Takeoff roll", pp.pv("dep.roll.ft")) + row("50-ft obstacle", pp.pv("dep.obs.ft")) + row("Accelerate-stop", pp.pv("dep.accel.ft")) +
+      row("Safe TORA / obs", pp.pv("dep.safeRoll.ft") + " / " + pp.pv("dep.safeObs.ft")) + row("Vr", pp.pv("dep.vr")));
+    var climb = sec("Climb",
+      row("Pressure altitude", pp.pv("cl.pa.ft")) + row("OAT", pp.pv("cl.oat.dC")) +
+      row("Two-engine, gear up", pp.pv("cl.bothUp.fpm")) + row("Two-engine, gear down", pp.pv("cl.bothDown.fpm")) + row("One-engine, gear up", pp.pv("cl.oneUp.fpm")));
+    var enr = sec("Enroute / Cruise",
+      row("Cruise altitude", pp.pv("cr.pa.ft")) + row("Power", pp.pv("cr.mcp") + "% · " + pp.pv("cr.rpmOut") + " RPM · " + pp.pv("cr.mp") + " inMP") +
+      row("Fuel flow", pp.pv("cr.gph") + " gph") + row("TAS / GS", pp.pv("cr.tas.kt") + " / " + pp.pv("cr.gs.kt")) +
+      row("Fuel to / at dest", pp.pv("cr.fuelToDest.gal") + " / " + pp.pv("cr.fuelAtDest.gal")) + row("Range to reserve", pp.pv("cr.range.nm")) +
+      row("Ceiling basis weight", pp.pv("cr.ceilWt.lbs")) +
+      row("2-eng ceiling svc/abs", pp.pv("cr.svcCeil2") + " / " + pp.pv("cr.absCeil2")) + row("1-eng ceiling svc/abs", pp.pv("cr.svcCeil1") + " / " + pp.pv("cr.absCeil1")));
+    var dest = sec("Destination",
+      row("Runway", pp.pv("dest.runway")) + row("Wind", pp.pv("dest.windTxt")) + row("Density altitude", pp.pv("dest.da.ft")) +
+      row("Landing roll", pp.pv("dest.roll.ft")) + row("50-ft obstacle", pp.pv("dest.obs.ft")) +
+      row("Safe LDA / obs", pp.pv("dest.safeRoll.ft") + " / " + pp.pv("dest.safeObs.ft")) + row("Vref", pp.pv("dest.vref")));
+    var html = "<h1>PA-44-180 Seminole — Performance Plan</h1>" +
+      "<p class='p-sub'>Aircraft: " + esc(reg) + " &nbsp;·&nbsp; Generated " + stamp + " &nbsp;·&nbsp; Reference / planning only</p>" +
+      "<div class='p-cols'>" + wb + dep + climb + enr + dest + "</div>" +
+      "<p class='p-foot'>Reference / planning aid only — not a substitute for the approved POH, official charts, or a current weight-and-balance record. Distances &amp; climb figures are digitized from POH charts. Verify every value before flight.</p>";
+    var el = doc.getElementById("f-print"); if (!el) { el = doc.createElement("div"); el.id = "f-print"; doc.body.appendChild(el); }
+    el.innerHTML = html;
+    root.print();
+  };
+
+  pp.setPage = ctl.newPage("settings");
+  pp.setPage.stateInfo = function () { return {
+    "set.adjPct": { io: "input", type: "number", min: 0, max: 100, dflt: 0, desc: "Default ground-roll margin" },
+    "set.reserve.gal": { io: "input", type: "number", min: 0, max: 60, dflt: 12, desc: "Default reserve fuel" }
+  }; };
+  pp.setPage.viewTemplate = function () {
+    var theme = Store.get("pa44.theme") || "auto";
+    function seg(mode, label) { return "<button class='" + (theme === mode ? "on" : "") + "' onclick=\"pp.setTheme('" + mode + "')\">" + label + "</button>"; }
+    var themeCtl = "<div class='f-seg'>" + seg("light", "Light") + seg("dark", "Dark") + seg("auto", "Auto") + "</div>";
+    return { tag: "page", title: "Settings", sub: ac.headerSub(), content: [
+      { tag: "cols",
+        left: { tag: "group", className: "iGroup", title: "Appearance", content: [
+          { tag: "row", label: "Theme", content: themeCtl },
+          { tag: "row", content: "<span class='dim'>Auto follows your device’s light/dark setting; Light/Dark override it on this device.</span>" }
+        ] },
+        right: { tag: "group", className: "iGroup", title: "Planning defaults", content: [
+          { tag: "row", label: "Ground-roll margin (%)", content: "{{set.adjPct}}" },
+          { tag: "row", label: "Reserve fuel (gal)", content: "{{set.reserve.gal}}" },
+          { tag: "row", content: "<button class='f-btn' onclick='pp.applyDefaults()'>Apply to current plan</button>" },
+          { tag: "row", content: "<span class='dim'>Copies these into the Departure/Destination ground-roll margin and the Enroute reserve.</span>" }
+        ] }
+      },
+      { tag: "cols",
+        left: { tag: "group", className: "oGroup", title: "Data management (this device only)", content: [
+          { tag: "row", content: "<button class='f-btn' onclick='pp.resetInputs()'>Reset all inputs</button> <button class='f-btn f-danger' onclick='pp.clearProfiles()'>Clear aircraft profiles</button>" },
+          { tag: "row", content: "<span class='dim'>Nothing is sent anywhere — all data stays in this browser’s local storage.</span>" }
+        ] },
+        right: { tag: "group", className: "oGroup", title: "About & provenance", content: [
+          { tag: "row", label: "Aircraft", content: ac.data("model") },
+          { tag: "row", label: "Document", content: ac.data("document") },
+          { tag: "row", label: "Datum", content: ac.data("datumNote") },
+          { tag: "row", label: "Max ramp / TO / ldg", content: U.fmtNum(ac.data("maxRampWeight")) + " / " + U.fmtNum(ac.data("maxTOweight")) + " / " + U.fmtNum(ac.data("maxLdgWeight")) + " lb" },
+          { tag: "row", label: "Fuel", content: ac.data("fuelUsableGal") + " gal usable · " + ac.data("fuelLbPerGal") + " lb/gal" }
+        ] }
+      },
+      { tag: "note", content: "Reference / planning aid only — not a substitute for the approved POH, official charts, or a current weight-and-balance record. Distances &amp; climb figures are digitized from POH charts; verify every value before flight." }
+    ] }; };
+  pp.setPage.computeInfo = function () { return []; };
 
   // header sub label shared by pages (shows current aircraft, red if default)
   ac.headerSub = function () { var r = io("ac.reg") && io("ac.reg").val(); return r || "Default aircraft"; };

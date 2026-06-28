@@ -175,6 +175,17 @@
       },
       cruiseMPperC: 0.01 / 8, // fractional MP change per °C from standard (POH note)
 
+      // --- Ceiling source: rate of climb (fpm) by config -> weight(lb) -> [{da,fpm}] ---
+      // Used to DERIVE service (50 fpm) & absolute (0 fpm) ceilings, which DO vary
+      // with weight. Only the max-gross (3800 lb) line is digitized so far; add more
+      // weight rows from POH Fig 5-17 (two-engine) / 5-19 (one-engine) and the ceiling
+      // will interpolate by weight automatically. Keep the `da` knots identical across
+      // weight rows. With a single weight row the ceiling is weight-independent.
+      ceilingByWeight: {
+        bothUp: { "3800": [{ da: 0, fpm: 1340 }, { da: 5000, fpm: 1000 }, { da: 10000, fpm: 640 }] },
+        oneUp:  { "3800": [{ da: 0, fpm: 220 },  { da: 5000, fpm: 80 }] }
+      },
+
       // --- Climb ROC (DIGITIZED) — Ptable over [config, da] ---
       climbROC: new Ptable({
         title: "Rate of climb (fpm)", verified: false,

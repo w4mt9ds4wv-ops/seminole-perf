@@ -1,5 +1,5 @@
 /* Offline-first precache. Same-origin only; zero cross-origin requests. */
-var CACHE = "pa44fw-v4";
+var CACHE = "pa44fw-v6";
 var ASSETS = [
   "index.html",
   "offline.html",
@@ -15,7 +15,12 @@ var ASSETS = [
   "src/boot.js"
 ];
 self.addEventListener("install", function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));
+  // {cache:"reload"} forces each asset to come from the network, never the HTTP
+  // cache — otherwise a version bump can re-cache stale files (and the app keeps
+  // showing the old version after an update).
+  e.waitUntil(caches.open(CACHE).then(function (c) {
+    return c.addAll(ASSETS.map(function (u) { return new Request(u, { cache: "reload" }); }));
+  }).then(function () { return self.skipWaiting(); }));
 });
 self.addEventListener("activate", function (e) {
   e.waitUntil(caches.keys().then(function (keys) {

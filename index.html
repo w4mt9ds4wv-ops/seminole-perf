@@ -8,7 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Seminole">
-<meta name="theme-color" content="#161d4f">
+<meta name="theme-color" content="#161d4f" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1320" media="(prefers-color-scheme: dark)">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="192x192" href="assets/icons/icon-192.png">
@@ -26,6 +27,7 @@
   <main id="f-main"></main>
   <footer id="f-foot">Reference / planning aid only — verify against the official POH. Distance &amp; climb figures are digitized from charts.</footer>
 </div>
+<div id="f-print" aria-hidden="true"></div>
 
 <!-- scripts in dependency order: framework -> model -> pages -> boot -->
 <script src="src/framework/framework.js"></script>

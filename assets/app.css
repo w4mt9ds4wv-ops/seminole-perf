@@ -19,9 +19,26 @@
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 
-/* ---- Dark mode (auto, follows the OS appearance setting) ---- */
+/* ---- Dark mode ----
+   Auto follows the OS unless overridden by data-theme on <html>:
+   data-theme="dark" forces dark, data-theme="light" forces light,
+   absent = auto. The dark token block is shared by both triggers. */
+:root[data-theme="dark"]{
+  --bg:#0f1320; --bg2:#0b0e18;
+  --nav:#1a225e; --nav2:#2a3486; --navsel:#0b1030; --barink:#fff;
+  --card:#171c2a; --card2:#1f2536; --line:#2a3142; --line2:#3a4257;
+  --ink:#e7e9ef; --label:#cdd2dc; --dim:#8b93a3;
+  --val:#7d97ff; --ok:#46c97e; --bad:#ff7a7a; --accent:#7d97ff;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.45);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.4);
+  --input-bg:#10141f;
+  --note-bg:#2a2410; --note-line:#4a3f1a; --note-bar:#caa53a; --note-ink:#e4d7a6;
+  --svg-bg:#11151f; --svg-ink:#e7e9ef; --svg-dim:#99a2b3; --svg-line:#39414f;
+  --svg-stroke:#8a93a3; --svg-track:#262c3a; --svg-fill:rgba(150,160,190,.14); --rwy-slab:#39414c;
+  color-scheme:dark;
+}
 @media (prefers-color-scheme:dark){
-  :root{
+  :root:not([data-theme="light"]):not([data-theme="dark"]){
     --bg:#0f1320; --bg2:#0b0e18;
     --nav:#1a225e; --nav2:#2a3486; --navsel:#0b1030; --barink:#fff;
     --card:#171c2a; --card2:#1f2536; --line:#2a3142; --line2:#3a4257;
@@ -110,8 +127,10 @@ select.f-in{width:auto;min-width:5.5rem;cursor:pointer}
   padding:.6rem .8rem;margin:0 0 1rem;font-size:.8rem;color:var(--note-ink)}
 .f-svg{width:100%;max-width:340px;height:auto;display:block;background:var(--svg-bg);
   border:1px solid var(--line);border-radius:var(--radius-sm);padding:.3rem}
-.f-rwy{width:150px;height:auto;display:block;margin:.2rem auto;background:var(--svg-bg);
-  border:1px solid var(--line);border-radius:var(--radius-sm)}
+.f-rwy{width:148px;height:auto;display:block;margin:.1rem auto .3rem;background:transparent}
+/* the runway graphic row centers its graphic and drops the row divider */
+.f-row.rwyrow{border-bottom:0;text-align:center}
+.f-row.rwyrow .f-rc{justify-content:center}
 .ok{color:var(--ok)} .bad{color:var(--bad)}
 .missing{color:var(--bad)}
 
@@ -149,4 +168,41 @@ select.f-in{width:auto;min-width:5.5rem;cursor:pointer}
   .f-row{padding:.55rem .15rem}
   .f-panel,.f-tab,.f-btn{touch-action:manipulation}
 }
+/* header action buttons (Print) */
+.f-headbtn{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:.3rem .8rem;font:inherit;font-size:.78rem;font-weight:600;cursor:pointer;
+  margin-left:.5rem;transition:background .15s}
+.f-headbtn:hover{background:rgba(255,255,255,.22)}
+
+/* settings page */
+.f-seg{display:inline-flex;border:1px solid var(--line2);border-radius:999px;overflow:hidden;margin:.2rem 0}
+.f-seg button{background:var(--card);color:var(--ink);border:0;border-right:1px solid var(--line2);
+  padding:.4rem 1rem;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
+.f-seg button:last-child{border-right:0}
+.f-seg button:hover{background:var(--card2)}
+.f-seg button.on{background:var(--accent);color:#fff}
+.f-danger{background:#fff0f0;color:var(--bad);border-color:#f0c4c4}
+:root[data-theme="dark"] .f-danger{background:#2a1414;border-color:#5a2a2a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .f-danger{background:#2a1414;border-color:#5a2a2a}}
+
+/* ---- printable report (hidden on screen, shown only when printing) ---- */
+#f-print{display:none}
+@media print{
+  @page{margin:14mm}
+  html,body{background:#fff!important;color:#000!important;height:auto!important}
+  #f-view{display:none!important}
+  #f-print{display:block!important;font-family:var(--font);color:#000;font-size:11px;line-height:1.4}
+  #f-print h1{font-size:17px;margin:0 0 2px}
+  #f-print .p-sub{color:#444;font-size:10px;margin:0 0 10px}
+  #f-print .p-sec{break-inside:avoid;margin:0 0 11px;border:1px solid #bbb;border-radius:6px;overflow:hidden}
+  #f-print .p-sec h2{font-size:11px;margin:0;padding:4px 8px;background:#eee;border-bottom:1px solid #bbb;
+    text-transform:uppercase;letter-spacing:.05em}
+  #f-print table{width:100%;border-collapse:collapse}
+  #f-print td{padding:3px 8px;border-bottom:1px solid #e2e2e2;vertical-align:top}
+  #f-print td:first-child{color:#333;width:46%}
+  #f-print td:last-child{font-weight:700;font-variant-numeric:tabular-nums}
+  #f-print .p-cols{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  #f-print .p-foot{margin-top:10px;font-size:9px;color:#555;border-top:1px solid #ccc;padding-top:6px}
+}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
